@@ -467,10 +467,13 @@ namespace TrenchBroom {
         void NoDropPolicy::doDragLeave(const InputState&) {}
         bool NoDropPolicy::doDragDrop(const InputState&) { return false; }
 
+        ToolController::ToolController() : m_dragging{false} {}
         ToolController::~ToolController() = default;
         Tool* ToolController::tool() { return doGetTool(); }
         const Tool* ToolController::tool() const { return doGetTool(); }
         bool ToolController::toolActive() const { return tool()->active(); }
+        bool ToolController::thisToolDragging() const { return m_dragging; }
+        void ToolController::setThisToolDragging(const bool dragging) { m_dragging = dragging; }
         void ToolController::refreshViews() { tool()->refreshViews(); }
 
         ToolControllerGroup::ToolControllerGroup() :
@@ -521,8 +524,10 @@ namespace TrenchBroom {
             if (!doShouldHandleMouseDrag(inputState))
                 return false;
             m_dragReceiver = m_chain.startMouseDrag(inputState);
-            if (m_dragReceiver != nullptr)
+            if (m_dragReceiver != nullptr) {
+                m_dragReceiver->setThisToolDragging(true);
                 doMouseDragStarted(inputState);
+            }
             return m_dragReceiver != nullptr;
         }
 
@@ -538,6 +543,7 @@ namespace TrenchBroom {
         void ToolControllerGroup::doEndMouseDrag(const InputState& inputState) {
             ensure(m_dragReceiver != nullptr, "dragReceiver is null");
             m_dragReceiver->endMouseDrag(inputState);
+            m_dragReceiver->setThisToolDragging(false);
             m_dragReceiver = nullptr;
             doMouseDragEnded(inputState);
         }
@@ -545,6 +551,7 @@ namespace TrenchBroom {
         void ToolControllerGroup::doCancelMouseDrag() {
             ensure(m_dragReceiver != nullptr, "dragReceiver is null");
             m_dragReceiver->cancelMouseDrag();
+            m_dragReceiver->setThisToolDragging(false);
             m_dragReceiver = nullptr;
             doMouseDragCancelled();
         }
