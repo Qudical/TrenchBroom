@@ -143,6 +143,8 @@ namespace TrenchBroom {
             selectionWillChangeNotifier();
             updateLastSelectionBounds();
 
+            SelectionWithLinkedGroupConstraintsApplied s = nodesWithLinkedGroupConstraintsApplied(nodes);
+
             std::vector<Model::Node*> selected;
             selected.reserve(nodes.size());
 
@@ -168,6 +170,15 @@ namespace TrenchBroom {
 
         void MapDocumentCommandFacade::performSelect(const std::vector<Model::BrushFaceHandle>& faces) {
             selectionWillChangeNotifier();
+
+            std::vector<Model::Node*> nodes = kdl::vec_transform(faces, [](auto handle) -> Model::Node* { return handle.node(); });
+            auto s = nodesWithLinkedGroupConstraintsApplied(nodes);
+
+            for (auto g : s.nodesToLock) {
+                qDebug() << "implicitly lock" << QString::fromStdString(g->group().name());
+                g->setLockedByOtherSelection(true);
+                // FIXME: notify node locking
+            }
 
             std::vector<Model::BrushFaceHandle> selected;
             selected.reserve(faces.size());
@@ -251,6 +262,23 @@ namespace TrenchBroom {
             selection.addDeselectedBrushFaces(deselected);
 
             selectionDidChangeNotifier(selection);
+
+            // handle implicit locking
+            // for deselections, we need to recalculate the implicit locking for the whole world
+            std::vector<Model::Node*> nodes = kdl::vec_transform(m_selectedBrushFaces, [](auto handle) -> Model::Node* { return handle.node(); });
+            auto s = nodesWithLinkedGroupConstraintsApplied(nodes);
+
+            for (auto* g : Model::findLinkedGroups(*m_world.get())) {
+                g->setLockedByOtherSelection(false);
+                nodeLockingDidChangeNotifier({g});
+            }
+            for (auto g : s.nodesToLock) {
+                qDebug() << "implicitly lock" << QString::fromStdString(g->group().name());
+                g->setLockedByOtherSelection(true);
+                nodeLockingDidChangeNotifier({g});
+            }
+            // FIXME: do a set minus instead of redundant unlock/lock
+            // FIXME: notify in a batch
         }
 
         void MapDocumentCommandFacade::performDeselectAll() {
