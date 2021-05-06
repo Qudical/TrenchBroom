@@ -817,6 +817,8 @@ namespace TrenchBroom {
                 nodes.push_back(entity);
             };
 
+            // FIXME: this is used when applying entity key/value changes to multiple
+            // closed linked groups... we should only
             for (auto* node : m_selectedNodes) {
                 node->accept(kdl::overload(
                     [&](auto&& thisLambda, Model::WorldNode* world) { nodes.push_back(world); world->visitChildren(thisLambda); },
@@ -828,6 +830,7 @@ namespace TrenchBroom {
                 ));
             }
 
+            // FIXME 
             return kdl::vec_sort_and_remove_duplicates(std::move(nodes));
         }
 
@@ -882,6 +885,9 @@ namespace TrenchBroom {
         std::vector<Model::BrushFaceHandle> MapDocument::allSelectedBrushFaces() const {
             if (hasSelectedBrushFaces())
                 return selectedBrushFaces();
+            // FIXME: only collect 1 of each link set, otherwise
+            // selecting 2 closed linked groups in a link set and applying textures
+            // fails.
             return Model::collectBrushFaces(m_selectedNodes.nodes());
         }
 
@@ -2646,6 +2652,7 @@ namespace TrenchBroom {
             size_t succeededBrushCount = 0;
             size_t failedBrushCount = 0;
 
+            // FIXME: handle 2 linked groups in a link set being selected.
             const auto allSelectedBrushes = allSelectedBrushNodes();
             applyAndSwap(*this, "Snap Brush Vertices", allSelectedBrushes, findContainingLinkedGroupsToUpdate(*m_world, allSelectedBrushes), kdl::overload(
                 [] (Model::Layer&)  { return true; },
