@@ -896,10 +896,25 @@ namespace TrenchBroom {
         std::vector<Model::BrushFaceHandle> MapDocument::allSelectedBrushFaces() const {
             if (hasSelectedBrushFaces())
                 return selectedBrushFaces();
-            // FIXME: only collect 1 of each link set, otherwise
+            // only collect 1 of each link set, otherwise
             // selecting 2 closed linked groups in a link set and applying textures
             // fails.
-            return Model::collectBrushFaces(m_selectedNodes.nodes());
+
+            // TODO: share code with MapDocumentCommandFacade::performSelect
+            std::vector<Model::BrushFaceHandle> faces = Model::collectBrushFaces(m_selectedNodes.nodes());
+
+            std::vector<Model::Node*> nodes = kdl::vec_transform(faces, [](auto handle) -> Model::Node* { return handle.node(); });
+            auto s = nodesWithLinkedGroupConstraintsApplied(*m_world.get(), nodes);
+
+            auto permissibleNodes = kdl::vector_set<Model::Node*>{s.nodesToSelect};
+
+            std::vector<Model::BrushFaceHandle> filtered;
+            for (const auto& handle : faces) {
+                if (permissibleNodes.count(handle.node()) != 0) {
+                    filtered.push_back(handle);
+                }
+            }
+            return filtered;
         }
 
         std::vector<Model::BrushFaceHandle> MapDocument::selectedBrushFaces() const {
