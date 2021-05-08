@@ -73,7 +73,7 @@ namespace TrenchBroom {
 
         MapDocumentCommandFacade::~MapDocumentCommandFacade() = default;
 
-        MapDocumentCommandFacade::SelectionWithLinkedGroupConstraintsApplied MapDocumentCommandFacade::nodesWithLinkedGroupConstraintsApplied(const std::vector<Model::Node*>& nodes) {
+        SelectionWithLinkedGroupConstraintsApplied nodesWithLinkedGroupConstraintsApplied(Model::WorldNode& world, const std::vector<Model::Node*>& nodes) {
             // we allow a selection in 1 instance of a linked group.
             kdl::vector_set<Model::GroupNode*> linkedGroupInstancesToImplicitlyLock;
 
@@ -123,7 +123,7 @@ namespace TrenchBroom {
                     // implicitly lock other groups in the link sets of ancestorLinkedGroups
                     for (Model::GroupNode* group : ancestorLinkedGroups) {
                         // find the others and add them to the lock list
-                        for (Model::GroupNode* otherGroup : Model::findLinkedGroups(*m_world.get(), *group->group().linkedGroupId())) {
+                        for (Model::GroupNode* otherGroup : Model::findLinkedGroups(world, *group->group().linkedGroupId())) {
                             if (otherGroup == group) {
                                 continue;
                             }
@@ -143,7 +143,7 @@ namespace TrenchBroom {
             selectionWillChangeNotifier();
             updateLastSelectionBounds();
 
-            SelectionWithLinkedGroupConstraintsApplied s = nodesWithLinkedGroupConstraintsApplied(nodes);
+            SelectionWithLinkedGroupConstraintsApplied s = nodesWithLinkedGroupConstraintsApplied(*m_world.get(), nodes);
 
             std::vector<Model::Node*> selected;
             selected.reserve(nodes.size());
@@ -172,7 +172,7 @@ namespace TrenchBroom {
             selectionWillChangeNotifier();
 
             std::vector<Model::Node*> nodes = kdl::vec_transform(faces, [](auto handle) -> Model::Node* { return handle.node(); });
-            auto s = nodesWithLinkedGroupConstraintsApplied(nodes);
+            auto s = nodesWithLinkedGroupConstraintsApplied(*m_world.get(), nodes);
 
             for (auto g : s.nodesToLock) {
                 qDebug() << "implicitly lock" << QString::fromStdString(g->group().name());
@@ -266,7 +266,7 @@ namespace TrenchBroom {
             // handle implicit locking
             // for deselections, we need to recalculate the implicit locking for the whole world
             std::vector<Model::Node*> nodes = kdl::vec_transform(m_selectedBrushFaces, [](auto handle) -> Model::Node* { return handle.node(); });
-            auto s = nodesWithLinkedGroupConstraintsApplied(nodes);
+            auto s = nodesWithLinkedGroupConstraintsApplied(*m_world.get(), nodes);
 
             for (auto* g : Model::findLinkedGroups(*m_world.get())) {
                 g->setLockedByOtherSelection(false);

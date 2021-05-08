@@ -34,10 +34,17 @@ namespace TrenchBroom {
     namespace Model {
         enum class LockState;
         enum class VisibilityState;
+        class WorldNode;
     }
 
     namespace View {
         class CommandProcessor;
+
+        struct SelectionWithLinkedGroupConstraintsApplied {
+            std::vector<Model::Node*> nodesToSelect;
+            std::vector<Model::GroupNode*> nodesToLock;
+        };
+        SelectionWithLinkedGroupConstraintsApplied nodesWithLinkedGroupConstraintsApplied(Model::WorldNode& world, const std::vector<Model::Node*>& nodes);
 
         /**
          * MapDocument API that is private to Command classes.
@@ -55,12 +62,6 @@ namespace TrenchBroom {
             MapDocumentCommandFacade();
         public:
             ~MapDocumentCommandFacade() override;
-        private:
-            struct SelectionWithLinkedGroupConstraintsApplied {
-                std::vector<Model::Node*> nodesToSelect;
-                std::vector<Model::GroupNode*> nodesToLock;
-            };
-            SelectionWithLinkedGroupConstraintsApplied nodesWithLinkedGroupConstraintsApplied(const std::vector<Model::Node*>& nodes);
         public: // selection modification
             void performSelect(const std::vector<Model::Node*>& nodes);
             void performSelect(const std::vector<Model::BrushFaceHandle>& faces);
