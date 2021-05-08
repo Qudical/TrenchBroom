@@ -89,6 +89,7 @@
 #include "View/BrushVertexCommands.h"
 #include "View/CurrentGroupCommand.h"
 #include "View/Grid.h"
+#include "View/MapDocumentCommandFacade.h"
 #include "View/MapTextEncoding.h"
 #include "View/PasteType.h"
 #include "View/ReparentNodesCommand.h"
@@ -817,8 +818,6 @@ namespace TrenchBroom {
                 nodes.push_back(entity);
             };
 
-            // FIXME: this is used when applying entity key/value changes to multiple
-            // closed linked groups... we should only
             for (auto* node : m_selectedNodes) {
                 node->accept(kdl::overload(
                     [&](auto&& thisLambda, Model::WorldNode* world) { nodes.push_back(world); world->visitChildren(thisLambda); },
@@ -830,8 +829,14 @@ namespace TrenchBroom {
                 ));
             }
 
-            // FIXME 
-            return kdl::vec_sort_and_remove_duplicates(std::move(nodes));
+            nodes = kdl::vec_sort_and_remove_duplicates(std::move(nodes));
+
+            // upcast to Node, then downcast back to EntityNodeBase (safe because nodesWithLinkedGroupConstraintsApplied just
+            // returns a subset of the provided Nodes.)
+            nodes = kdl::vec_element_cast<Model::EntityNodeBase*>(
+                nodesWithLinkedGroupConstraintsApplied(*m_world.get(), kdl::vec_element_cast<Model::Node*>(nodes)).nodesToSelect);
+
+            return nodes;
         }
 
         std::vector<Model::BrushNode*> MapDocument::allSelectedBrushNodes() const {
