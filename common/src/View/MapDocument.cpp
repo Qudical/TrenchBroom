@@ -851,6 +851,12 @@ namespace TrenchBroom {
                     [&](Model::PatchNode*)                            {}
                 ));
             }
+
+            // upcast to Node, then downcast back to BrushNode (safe because nodesWithLinkedGroupConstraintsApplied just
+            // returns a subset of the provided Nodes.)
+            brushes = kdl::vec_element_cast<Model::BrushNode*>(
+                nodesWithLinkedGroupConstraintsApplied(*m_world.get(), kdl::vec_element_cast<Model::Node*>(brushes)).nodesToSelect);
+
             return brushes;
         }
 
