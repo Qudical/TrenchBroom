@@ -195,12 +195,14 @@ namespace TrenchBroom {
         using FindHitPosition = std::function<std::optional<vm::vec3>(const InputState&)>;
         FindHitPosition makeLineHitFinder(const vm::line3& line);
         FindHitPosition makePlaneHitFinder(const vm::plane3& plane);
+        FindHitPosition makeCircleHitFinder(const vm::vec3& center, const vm::vec3& normal, FloatType radius);
 
         /**
          * Converts the input state, an initial handle position, a last handle position, and a current hit position to a handle position.
          */
         using ConvertHitToHandlePosition = std::function<std::optional<vm::vec3>(const InputState&, const vm::vec3&, const vm::vec3&, const vm::vec3&)>;
         ConvertHitToHandlePosition makeDeltaSnapper(const Grid& grid);
+        ConvertHitToHandlePosition makeCircleSnapper(const Grid& grid, FloatType snapAngle, const vm::vec3& center, const vm::vec3& normal, FloatType radius);
 
         /**
          * Composes a hit finder and a handle position converter to a function that can be used by a handle drag tracker.

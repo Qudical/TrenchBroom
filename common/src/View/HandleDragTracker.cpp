@@ -25,6 +25,7 @@
 #include <vecmath/intersection.h>
 #include <vecmath/line.h>
 #include <vecmath/plane.h>
+#include <vecmath/quat.h>
 
 namespace TrenchBroom {
     namespace View {
@@ -58,6 +59,20 @@ namespace TrenchBroom {
             };
         }
 
+        FindHitPosition makeCircleHitFinder(const vm::vec3& center, const vm::vec3& normal, const FloatType radius) {
+            return [center, normal, radius](const InputState& inputState) -> std::optional<vm::vec3> {
+                const auto plane = vm::plane3{center, normal};
+                const auto distance = vm::intersect_ray_plane(inputState.pickRay(), plane);
+                if (vm::is_nan(distance)) {
+                    return std::nullopt;
+                }
+
+                const auto hitPoint = vm::point_at_distance(inputState.pickRay(), distance);
+                const auto direction = vm::normalize(hitPoint - center);
+                return center + radius * direction;
+            };
+        }
+
         ConvertHitToHandlePosition makeDeltaSnapper(const Grid& grid) {
             return [&grid](const InputState&, const vm::vec3& initialHandlePosition, const vm::vec3&, const vm::vec3& currentHitPosition) {
                 return initialHandlePosition + grid.snap(currentHitPosition - initialHandlePosition);
@@ -71,6 +86,22 @@ namespace TrenchBroom {
                 }
 
                 return std::nullopt;
+            };
+        }
+
+        ConvertHitToHandlePosition makeCircleSnapper(const Grid& grid, FloatType snapAngle, const vm::vec3& center, const vm::vec3& normal, const FloatType radius) {
+            return [&grid, snapAngle, center, normal, radius](const InputState&, const vm::vec3& initialHandlePosition, const vm::vec3&, const vm::vec3& currentHitPosition) -> std::optional<vm::vec3> {
+                if (currentHitPosition == center) {
+                    return std::nullopt;
+                }
+
+                const auto ref = vm::normalize(initialHandlePosition - center);
+                const auto vec = vm::normalize(currentHitPosition - center);
+                const auto angle = vm::measure_angle(vec, ref, normal);
+                const auto snapped = grid.snapAngle(angle, vm::abs(snapAngle));
+                const auto canonical = snapped - vm::snapDown(snapped, vm::C::two_pi());
+                const auto rotation = vm::quat3{normal, canonical};
+                return center + radius * (rotation * ref);
             };
         }
     }
