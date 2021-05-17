@@ -73,8 +73,14 @@ namespace TrenchBroom {
             };
         }
 
+        ConvertHitToHandlePosition makeIdentitySnapper() {
+            return [](const InputState&, const vm::vec3& /* initialHandlePosition */, const vm::vec3& /* lastHandlePosition */, const vm::vec3& currentHitPosition) {
+                return currentHitPosition;
+            };
+        }
+
         ConvertHitToHandlePosition makeDeltaSnapper(const Grid& grid) {
-            return [&grid](const InputState&, const vm::vec3& initialHandlePosition, const vm::vec3&, const vm::vec3& currentHitPosition) {
+            return [&grid](const InputState&, const vm::vec3& initialHandlePosition, const vm::vec3& /* lastHandlePosition */, const vm::vec3& currentHitPosition) {
                 return initialHandlePosition + grid.snap(currentHitPosition - initialHandlePosition);
             };
         }
