@@ -133,10 +133,6 @@ namespace TrenchBroom {
             document.select(faceToSelectAfter);
         }
 
-        bool SetBrushFaceAttributesTool::doCancel() {
-            return false;
-        }
-
         bool SetBrushFaceAttributesTool::doStartMouseDrag(const InputState& inputState) {
             if (!applies(inputState)) {
                 return false;
@@ -154,43 +150,6 @@ namespace TrenchBroom {
             m_dragInitialSelectedFaceHandle = selectedFaces[0];
 
             document->startTransaction("Drag Apply Face Attributes");
-
-            return true;
-        }
-
-        void SetBrushFaceAttributesTool::copyAttributesFromSelection(const InputState& inputState, const bool applyToBrush) {
-            assert(canCopyAttributesFromSelection(inputState));
-
-            auto document = kdl::mem_lock(m_document);
-
-            const auto selectedFaces = document->selectedBrushFaces();
-            assert(!selectedFaces.empty());
-
-            const Model::Hit& hit = inputState.pickResult().query().pickable().type(Model::BrushNode::BrushHitType).occluded().first();
-            if (const auto targetFaceHandle = Model::hitToFaceHandle(hit)) {
-                const auto sourceFaceHandle = selectedFaces.front();
-                const auto targetList = applyToBrush ? Model::toHandles(targetFaceHandle->node()) : std::vector<Model::BrushFaceHandle>{*targetFaceHandle};
-
-                transferFaceAttributes(*document, inputState, sourceFaceHandle, targetList, sourceFaceHandle);
-            }
-        }
-
-        bool SetBrushFaceAttributesTool::canCopyAttributesFromSelection(const InputState& inputState) const {
-            if (!applies(inputState)) {
-                return false;
-            }
-
-            auto document = kdl::mem_lock(m_document);
-
-            const auto selectedFaces = document->selectedBrushFaces();
-            if (selectedFaces.size() != 1) {
-                return false;
-            }
-
-            const Model::Hit& hit = inputState.pickResult().query().pickable().type(Model::BrushNode::BrushHitType).occluded().first();
-            if (!hit.isMatch()) {
-                return false;
-            }
 
             return true;
         }
@@ -241,6 +200,47 @@ namespace TrenchBroom {
             m_dragInitialSelectedFaceHandle = std::nullopt;
             m_dragTargetFaceHandle = std::nullopt;
             m_dragSourceFaceHandle = std::nullopt;
+        }
+
+        bool SetBrushFaceAttributesTool::doCancel() {
+            return false;
+        }
+
+        void SetBrushFaceAttributesTool::copyAttributesFromSelection(const InputState& inputState, const bool applyToBrush) {
+            assert(canCopyAttributesFromSelection(inputState));
+
+            auto document = kdl::mem_lock(m_document);
+
+            const auto selectedFaces = document->selectedBrushFaces();
+            assert(!selectedFaces.empty());
+
+            const Model::Hit& hit = inputState.pickResult().query().pickable().type(Model::BrushNode::BrushHitType).occluded().first();
+            if (const auto targetFaceHandle = Model::hitToFaceHandle(hit)) {
+                const auto sourceFaceHandle = selectedFaces.front();
+                const auto targetList = applyToBrush ? Model::toHandles(targetFaceHandle->node()) : std::vector<Model::BrushFaceHandle>{*targetFaceHandle};
+
+                transferFaceAttributes(*document, inputState, sourceFaceHandle, targetList, sourceFaceHandle);
+            }
+        }
+
+        bool SetBrushFaceAttributesTool::canCopyAttributesFromSelection(const InputState& inputState) const {
+            if (!applies(inputState)) {
+                return false;
+            }
+
+            auto document = kdl::mem_lock(m_document);
+
+            const auto selectedFaces = document->selectedBrushFaces();
+            if (selectedFaces.size() != 1) {
+                return false;
+            }
+
+            const Model::Hit& hit = inputState.pickResult().query().pickable().type(Model::BrushNode::BrushHitType).occluded().first();
+            if (!hit.isMatch()) {
+                return false;
+            }
+
+            return true;
         }
     }
 }
