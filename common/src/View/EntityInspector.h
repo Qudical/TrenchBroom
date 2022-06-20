@@ -54,6 +54,7 @@ private:
     QWidget* parent, std::weak_ptr<MapDocument> document, GLContextManager& contextManager);
   CollapsibleTitledPanel* createEntityDefinitionFileChooser(
     QWidget* parent, std::weak_ptr<MapDocument> document);
+  virtual void resizeEvent(QResizeEvent *event) override;
 };
 } // namespace View
 } // namespace TrenchBroom

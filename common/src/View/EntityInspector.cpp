@@ -111,5 +111,11 @@ CollapsibleTitledPanel* EntityInspector::createEntityDefinitionFileChooser(
 
   return panel;
 }
+
+void EntityInspector::resizeEvent(QResizeEvent* event) {
+  QWidget::resizeEvent(event);
+  m_splitter->setOrientation(size().width() >= 700 ? Qt::Horizontal : Qt::Vertical);
+}
+
 } // namespace View
 } // namespace TrenchBroom

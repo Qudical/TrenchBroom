@@ -174,5 +174,10 @@ void FaceInspector::textureSelected(const Assets::Texture* texture) {
     document->setFaceAttributes(request);
   }
 }
+
+void FaceInspector::resizeEvent(QResizeEvent* event) {
+  QWidget::resizeEvent(event);
+  m_splitter->setOrientation(size().width() >= 700 ? Qt::Horizontal : Qt::Vertical);
+}
 } // namespace View
 } // namespace TrenchBroom

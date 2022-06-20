@@ -66,6 +66,7 @@ private:
     QWidget* parent, std::weak_ptr<MapDocument> document);
 
   void textureSelected(const Assets::Texture* texture);
+  virtual void resizeEvent(QResizeEvent *event) override;
 };
 } // namespace View
 } // namespace TrenchBroom
