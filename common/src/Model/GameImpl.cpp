@@ -454,7 +454,8 @@ Assets::EntityDefinitionFileSpec GameImpl::defaultEntityDefinitionFile() const {
   }
 
   const auto& path = paths.front();
-  return Assets::EntityDefinitionFileSpec::builtin(path);
+  //return Assets::EntityDefinitionFileSpec::builtin(path);
+  return Assets::EntityDefinitionFileSpec::parse(path.asString());
 }
 
 IO::Path GameImpl::doFindEntityDefinitionFile(

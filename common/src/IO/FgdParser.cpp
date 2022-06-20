@@ -302,6 +302,9 @@ EntityDefinitionClassInfo FgdParser::parseClassInfo(
         status.warn(token.line(), token.column(), "Found multiple model properties");
       }
       classInfo.modelDefinition = parseModel(status);
+    } else if (kdl::ci::str_is_equal(typeName, "script") || kdl::ci::str_is_equal(typeName, "scene")) {
+      // GODOT: Don't do anything.
+      skipClassProperty(status);
     } else {
       status.warn(
         token.line(), token.column(),
